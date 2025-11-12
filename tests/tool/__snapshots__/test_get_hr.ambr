@@ -1,0 +1,97 @@
+# serializer version: 1
+# name: test_get_hr[all_namespace]
+  '''
+  NAMESPACE    NAME       REVISION    CHART              SOURCE     
+  metallb      metallb    4.1.14      metallb-metallb    bitnami    
+  
+  '''
+# ---
+# name: test_get_hr[cluster2]
+  '''
+  NAMESPACE     NAME                    REVISION    CHART                              SOURCE                  
+  networking    ingress-nginx           4.5.2       networking-ingress-nginx           ingress-nginx           
+  monitoring    kubernetes-dashboard    6.0.0       monitoring-kubernetes-dashboard    kubernetes-dashboard    
+  
+  '''
+# ---
+# name: test_get_hr[cluster3-no-source]
+  '''
+  no HelmRelease objects found in cluster
+  
+  '''
+# ---
+# name: test_get_hr[cluster3]
+  '''
+  NAMESPACE    NAME       REVISION    CHART              SOURCE     
+  podinfo      podinfo    6.8.0       podinfo-podinfo    podinfo    
+  
+  '''
+# ---
+# name: test_get_hr[cluster4]
+  '''
+  NAMESPACE     NAME                    REVISION    CHART                              SOURCE                  
+  monitoring    kubernetes-dashboard    6.0.0       monitoring-kubernetes-dashboard    kubernetes-dashboard    
+  
+  '''
+# ---
+# name: test_get_hr[cluster5]
+  '''
+  NAMESPACE      NAME            REVISION    CHART                       SOURCE          
+  metallb        metallb         4.1.14      metallb-metallb             bitnami         
+  flux-system    weave-gitops    4.0.36      flux-system-weave-gitops    weave-charts    
+  
+  '''
+# ---
+# name: test_get_hr[cluster6]
+  '''
+  NAMESPACE    NAME        REVISION    CHART               SOURCE      
+  default      renovate    37.64.3     default-renovate    renovate    
+  
+  '''
+# ---
+# name: test_get_hr[cluster7]
+  '''
+  NAMESPACE      NAME                REVISION    CHART                       SOURCE            
+  flux-system    cloudflared         None        flux-system-app-template    app-template      
+  database       postgresql          12.7.1      database-postgresql         bitnami-charts    
+  flux-system    unifi-controller    None        flux-system-app-template    app-template      
+  
+  '''
+# ---
+# name: test_get_hr[cluster9]
+  '''
+  NAMESPACE    NAME       REVISION    CHART                                                   SOURCE         
+  default      nginx      None        default-./tests/testdata/cluster9/local-charts/nginx    flux-system    
+  default      podinfo    None        default-podinfo                                         podinfo        
+  
+  '''
+# ---
+# name: test_get_hr[cluster]
+  '''
+  NAMESPACE      NAME            REVISION    CHART                       SOURCE          
+  podinfo        podinfo         6.3.2       podinfo-podinfo             podinfo         
+  metallb        metallb         4.1.14      metallb-metallb             bitnami         
+  flux-system    weave-gitops    4.0.36      flux-system-weave-gitops    weave-charts    
+  
+  '''
+# ---
+# name: test_get_hr[label-selector-match]
+  '''
+  NAMESPACE    NAME       REVISION    CHART              SOURCE     
+  podinfo      podinfo    6.3.2       podinfo-podinfo    podinfo    
+  
+  '''
+# ---
+# name: test_get_hr[label-selector-no-match]
+  '''
+  no HelmRelease objects found in cluster
+  
+  '''
+# ---
+# name: test_get_hr[name]
+  '''
+  NAME       REVISION    CHART              SOURCE     
+  metallb    4.1.14      metallb-metallb    bitnami    
+  
+  '''
+# ---

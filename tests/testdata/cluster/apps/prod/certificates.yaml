@@ -1,0 +1,57 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: "${SECRET_DOMAIN/./-}-staging"
+spec:
+  secretName: "${SECRET_DOMAIN/./-}-staging-tls"
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  commonName: "${SECRET_DOMAIN}"
+  dnsNames:
+    - "${SECRET_DOMAIN}"
+    - "*.${SECRET_DOMAIN}"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: "${SECRET_DOMAIN2/./-}-staging"
+spec:
+  secretName: "${SECRET_DOMAIN2/./-}-staging-tls"
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  commonName: "${SECRET_DOMAIN2}"
+  dnsNames:
+    - "${SECRET_DOMAIN2}"
+    - "*.${SECRET_DOMAIN2}"
+    - ${cluster_label}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: "${SECRET_DOMAIN3/./-}-staging"
+spec:
+  secretName: "${SECRET_DOMAIN3/./-}-staging-tls"
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  commonName: "${SECRET_DOMAIN3}"
+  dnsNames:
+    - "${SECRET_DOMAIN3}"
+    - "*.${SECRET_DOMAIN3}"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: "${SECRET_DOMAIN4/./-}-staging"
+spec:
+  secretName: "${SECRET_DOMAIN4/./-}-staging-tls"
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  commonName: "${SECRET_DOMAIN4}"
+  dnsNames:
+    - "${SECRET_DOMAIN4}"
+    - "*.${SECRET_DOMAIN4}"

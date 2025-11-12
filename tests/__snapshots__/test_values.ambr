@@ -1,0 +1,53 @@
+# serializer version: 1
+# name: test_value_references
+  dict({
+    'ingress': dict({
+      'annotations': dict({
+        'azure.workload.identity/client-id': '..PLACEHOLDER_dot-notated-target-path..',
+      }),
+      'className': 'nginx',
+      'enabled': True,
+      'hosts': list([
+        dict({
+          'host': 'podinfo.production',
+          'paths': list([
+            dict({
+              'path': '/',
+              'pathType': 'ImplementationSpecific',
+            }),
+          ]),
+        }),
+      ]),
+    }),
+    'redis': dict({
+      'enabled': True,
+      'repository': 'public.ecr.aws/docker/library/redis',
+      'tag': '7.0.6',
+    }),
+    'service': dict({
+      'annotations': dict({
+        'app.kubernetes.io/name=[backend]': '..PLACEHOLDER_escape-special-chars-path..',
+      }),
+    }),
+    'tls': dict({
+      'crt': '..PLACEHOLDER_podinfo-tls-values..',
+    }),
+  })
+# ---
+# name: test_value_references.1
+  dict({
+    'apiServerProxyConfig': dict({
+      'mode': 'true',
+    }),
+    'oauth': dict({
+      'clientId': '..PLACEHOLDER_tailscale-operator..',
+      'clientSecret': '..PLACEHOLDER_tailscale-operator..',
+    }),
+    'operatorConfig': dict({
+      'defaultTags': list([
+        'tag:k8s',
+      ]),
+      'hostname': 'tailscale-operator',
+    }),
+  })
+# ---

@@ -1,0 +1,69 @@
+---
+name: flux-local test
+description: Build the cluster and run validation checks
+inputs:
+  path:
+    description: Path to the root of the flux cluster GitRepository and Kustomization
+    required: true
+  enable-helm:
+    description: Build HelmRelease objects and validate outputs
+    default: true
+    required: false
+  api-versions:
+    description: Kubernetes api versions used for helm Capabilities.APIVersions
+    default: policy/v1/PodDisruptionBudget
+    required: false
+  python-version:
+    description: Python version used for running flux-local
+    default: "3.13"
+  debug:
+    description: When true, uses the DEBUG log level
+    default: false
+  kustomize-build-flags:
+    description: Additional flags to pass to kustomize build
+    default: ""
+  sources:
+    description: GitRepository or OCIRepository to include with optional source mappings like `flux-system` or `cluster=./kubernetes/`
+    default: ""
+  registry-config:
+    description: Path to registry config for OCIRepository, formatted as a docker config JSON
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - name: Verify Flux CLI
+      run: flux --version || (echo "Could not find flux CLI, add https://fluxcd.io/flux/flux-gh-action/" && exit 1)
+      shell: bash
+    - name: Copy requirements locally
+      id: copy-requirements
+      shell: bash
+      run: |
+        # `cache-dependency-path` seems to need to be within the current directory. Use a temporary directory
+        tempdir=$(mktemp --directory --tmpdir=. --suffix=-flux-local-diff-action)
+        cp ${{ github.action_path }}/../../requirements.txt $tempdir
+        echo "directory=${tempdir}" >> $GITHUB_OUTPUT
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        enable-cache: true
+        cache-dependency-glob: ${{ steps.copy-requirements.outputs.directory }}/requirements.txt
+        python-version: ${{ inputs.python-version }}
+        activate-environment: true
+    - name: Install dependencies
+      run: |
+        uv pip install -r ${{ steps.copy-requirements.outputs.directory }}/requirements.txt
+        uv pip install -e ${{ github.action_path }}/../../
+      shell: bash
+    - name: Test cluster (flux-local)
+      run: |
+        flux-local \
+          --log-level ${{ inputs.debug != 'true' && 'INFO' || 'DEBUG' }} \
+          test \
+          --${{ inputs.enable-helm != 'true' && 'no-' || '' }}enable-helm \
+          --api-versions "${{ inputs.api-versions }}" \
+          --kustomize-build-flags="${{ inputs.kustomize-build-flags }}" \
+          --sources "${{ inputs.sources }}" \
+          --path ${{ inputs.path }} \
+          --verbosity ${{ inputs.debug != 'true' && '0' || '1' }} \
+          --registry-config "${{ inputs.registry-config }}"
+      shell: bash

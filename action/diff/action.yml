@@ -1,0 +1,126 @@
+---
+name: flux-local diff
+description: Build the cluster and diff the PR against the existing cluster
+inputs:
+  path:
+    description: Path to the root of the flux cluster GitRepository and Kustomization
+    required: true
+  live-branch:
+    description: The name of the live branch to diff against, typically 'main' or 'master'.
+    default: main
+  resource:
+    description: Type of resource to diff, either 'kustomization' or 'helmrelease'
+    required: true
+    default: kustomization
+  diff-lines:
+    description: Number of diff lines to show
+    default: 6
+  skip-secrets:
+    description: When true, does not attempt to diff secrets
+    default: true
+  skip-crds:
+    description: When true, does not attempt to diff crds
+    default: true
+  api-versions:
+    description: Kubernetes api versions used for helm Capabilities.APIVersions
+    default: policy/v1/PodDisruptionBudget
+    required: false
+  python-version:
+    description: Python version used for running flux-local
+    default: "3.13"
+  strip-attrs:
+    description: Labels and annotations that should be stripped to reduce diff noise
+    default: helm.sh/chart,checksum/config,app.kubernetes.io/version,chart
+  debug:
+    description: When true, uses the DEBUG log level
+    default: false
+  limit-bytes:
+    description: Maximum number of bytes per individual diff (0=unlimited)
+    default: 10000
+  kustomize-build-flags:
+    description: Additional flags to pass to kustomize build
+    default: ""
+  sources:
+    description: GitRepository or OCIRepository to include with optional source mappings like `flux-system` or `cluster=./kubernetes/`
+    default: ""
+  token:
+    description: Token used for checkout action
+    default: "${{ github.token }}"
+    required: false
+  registry-config:
+    description: Path to registry config for OCIRepository, formatted as a docker config JSON
+    default: ""
+outputs:
+  diff:
+    description: Output of the diff command or empty if there is no diff
+    value: ${{ steps.flux_diff_output.outputs.diff }}
+runs:
+  using: "composite"
+  steps:
+    - name: Verify Flux CLI
+      run: flux --version || (echo "Could not find flux CLI, add https://fluxcd.io/flux/flux-gh-action/" && exit 1)
+      shell: bash
+    - name: Copy requirements locally
+      id: copy-requirements
+      shell: bash
+      run: |
+        # `cache-dependency-path` seems to need to be within the current directory. Use a temporary directory
+        tempdir=$(mktemp --directory --tmpdir=. --suffix=-flux-local-diff-action)
+        cp ${{ github.action_path }}/../../requirements.txt ${tempdir}
+        echo "directory=${tempdir}" >> $GITHUB_OUTPUT
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        cache-dependency-glob: ${{ steps.copy-requirements.outputs.directory }}/requirements.txt
+        python-version: ${{ inputs.python-version }}
+        activate-environment: true
+    - name: Install dependencies
+      run: |
+        uv pip install -r ${{ steps.copy-requirements.outputs.directory }}/requirements.txt
+        uv pip install -e ${{ github.action_path }}/../../
+      shell: bash
+    - name: Checkout PR branch
+      uses: actions/checkout@v5
+      with:
+        path: pr
+        token: ${{ inputs.token }}
+    - name: Checkout live branch
+      uses: actions/checkout@v5
+      with:
+        ref: ${{ inputs.live-branch }}
+        path: live
+        token: ${{ inputs.token }}
+    - name: Diff Resources
+      id: flux_diff
+      run: |
+        if [[ "${{ inputs.resource }}" == "helmrelease" ]]; then
+          extra_flags="--api-versions=${{ inputs.api-versions}} --registry-config=${{ inputs.registry-config }}"
+        else
+          extra_flags=""
+        fi
+        flux-local \
+            --log-level ${{ inputs.debug != 'true' && 'INFO' || 'DEBUG' }} \
+            diff \
+            ${{ inputs.resource }} \
+            --unified ${{ inputs.diff-lines }} \
+            --path ${GITHUB_WORKSPACE}/pr/${{ inputs.path }} \
+            --path-orig ${GITHUB_WORKSPACE}/live/${{ inputs.path }} \
+            --strip-attrs "${{ inputs.strip-attrs }}" \
+            --${{ inputs.skip-crds != 'true' && 'no-' || '' }}skip-crds \
+            --${{ inputs.skip-secrets != 'true' && 'no-' || '' }}skip-secrets \
+            --limit-bytes ${{ inputs.limit-bytes }} \
+            --all-namespaces \
+            --kustomize-build-flags="${{ inputs.kustomize-build-flags }}" \
+            --sources "${{ inputs.sources }}" \
+            --output-file diff.patch \
+            ${extra_flags}
+      shell: bash
+    - name: Generate Diff output
+      id: flux_diff_output
+      run: |
+        delimiter="$(openssl rand -hex 8)"
+        echo "diff<<${delimiter}" >> $GITHUB_OUTPUT
+        cat diff.patch >> $GITHUB_OUTPUT
+        echo "${delimiter}" >> $GITHUB_OUTPUT
+      shell: bash

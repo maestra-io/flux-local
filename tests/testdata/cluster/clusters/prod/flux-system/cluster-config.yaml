@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-config
+  namespace: flux-system
+data:
+  cluster_label: example-value
+  SECRET_DOMAIN: "example.com"
+  SECRET_DOMAIN2: "other.com"

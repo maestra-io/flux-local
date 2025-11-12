@@ -1,0 +1,22 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: podinfo
+  namespace: podinfo
+  labels:
+    app.kubernetes.io/name: podinfo
+    app.kubernetes.io/instance: podinfo
+spec:
+  chart:
+    spec:
+      version: "6.3.2"
+  values:
+    ingress:
+      additionalLabels:
+        cluster_label: ${cluster_label}
+      hosts:
+        - host: podinfo.${cluster_env}
+          paths:
+            - path: /
+              pathType: ImplementationSpecific

@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: podinfo
+  name: podinfo-values
+data:
+  values.yaml: |-
+    redis:
+      repository: public.ecr.aws/docker/library/redis
+      tag: 7.0.5
+    ingress:
+      enabled: true
+      className: nginx
+      hosts:
+        - host: podinfo.production
+          paths:
+            - path: /
+              pathType: ImplementationSpecific
+  empty-values.yaml: ""
+  patch-values.yaml: |-
+    redis:
+      tag: 7.0.6
