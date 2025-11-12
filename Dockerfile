@@ -1,22 +1,34 @@
-FROM python:3.13-alpine as base
+FROM cr.yandex/crp2cvbrp76d7dmfegco/docker.io/library/python:3.12.1-alpine
 
-RUN apk add --no-cache ca-certificates git
+ENV KUSTOMIZE_URL=https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh
+ENV FLUXCD_URL=https://fluxcd.io/install.sh
+ENV HELM_URL=https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+ENV DYFF_URL=https://git.io/JYfAY
+ENV KUBECONFORM_URL=https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz
+ENV VERIFY_CHECKSUM=false
 
-WORKDIR /app
-COPY flux_local/ ./flux_local
-COPY pyproject.toml .
+# Настройки flux-local
+ENV FLUX_LOCAL_TIMEOUT=120
+ENV FLUX_LOCAL_HELM_CACHE_DIR=/cache/flux-local/helm
 
-RUN pip install -e .
+RUN apk add --no-cache \
+    bash \
+    curl \
+    git \
+    jq \
+    yq
 
-COPY --from=ghcr.io/fluxcd/flux-cli:v2.7.3  /usr/local/bin/flux  /usr/local/bin/flux
-COPY --from=docker.io/alpine/helm:3.19.0    /usr/bin/helm        /usr/local/bin/helm
+RUN curl -s ${KUSTOMIZE_URL}  | bash && \
+    curl -s ${FLUXCD_URL}| bash && \
+    curl ${HELM_URL} | bash && \
+    curl -s --location ${DYFF_URL} | bash && \
+    curl -L ${KUBECONFORM_URL} --output kubeconform.tar.gz && \
+    tar xvzf kubeconform.tar.gz && \
+    mv kustomize kubeconform /usr/local/bin/ && \
+    mkdir -p ${FLUX_LOCAL_HELM_CACHE_DIR}
 
-# renovate: datasource=github-releases depName=kubernetes-sigs/kustomize
-ARG KUSTOMIZE_VERSION=v5.7.1
-ARG TARGETARCH
-RUN wget -qO- \
-  "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_${TARGETARCH}.tar.gz" \
-  | tar xz -C /usr/local/bin kustomize
+COPY . /tmp/flux-local
 
-USER 1001
-ENTRYPOINT ["/usr/local/bin/flux-local"]
+RUN pip install --no-cache-dir uv && \
+    uv pip install --system /tmp/flux-local && \
+    rm -rf /tmp/flux-local

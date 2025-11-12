@@ -1,0 +1,47 @@
+stages:
+  - load-secrets
+  - versioning
+  - docker-yc
+  - release
+
+include:
+  - component: $CI_SERVER_FQDN/system/components/load-vault-secrets/load-vault-secrets@2
+  - component: $CI_SERVER_FQDN/system/components/create-release-number/create-release-number@1
+  - component: $CI_SERVER_FQDN/system/components/create-gitlab-release/create-gitlab-release@1
+  - component: $CI_SERVER_FQDN/system/components/docker-push-to-all/docker-push-to-all@1
+
+load-vault-secrets:
+  stage: load-secrets
+  extends: .load-vault-secrets
+  variables:
+    stable: CONTAINER_REGISTRY_KEY
+
+generate-release-number:
+  extends: .create-release-number
+  stage: versioning
+
+build-docker-and-push-yc-images:
+  extends: .yc-push
+  stage: docker-yc
+  when: on_success
+  variables:
+    REPOSITORIES: "flux-local-fork"
+    TARGET_TAGS: "$RELEASE_NUMBER"
+    YC_CONTAINER_REGISTRY_ID: "crpcl8cpek7o88jk1vg7"
+  before_script:
+    - YC_REGISTRY_KEY=$CONTAINER_REGISTRY_KEY
+    - docker build --rm -t local/flux-local-fork:local -f ./Dockerfile .
+  dependencies:
+    - generate-release-number
+    - load-vault-secrets
+
+create-gitlab-release:
+  extends: .create-gitlab-release
+  stage: release
+  variables:
+    # FROM generate-release-number
+    RELEASE_NUMBER: ""
+  rules:
+    - when: on_success
+  dependencies:
+    - generate-release-number

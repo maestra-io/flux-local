@@ -1,0 +1,14 @@
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+  rules:
+    - when: always
+
+default:
+  interruptible: true
+
+include:
+  - component: $CI_SERVER_FQDN/system/components/check-encoding/check-encoding@1
+
+check-encoding:
+  extends: .check-encoding

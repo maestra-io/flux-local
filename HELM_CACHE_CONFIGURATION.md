@@ -255,3 +255,216 @@ chmod -R 755 $FLUX_LOCAL_HELM_CACHE_DIR
 - Таймаут по умолчанию составляет 60 секунд
 
 Изменения в существующем коде или конфигурациях не требуются.
+
+## Установка форка в Docker
+
+### Вариант 1: Установка из Git-репозитория (рекомендуется)
+
+Если форк загружен в Git-репозиторий:
+
+```dockerfile
+FROM python:3.11-slim
+
+# Установка зависимостей системы
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Установка flux CLI
+RUN curl -s https://fluxcd.io/install.sh | bash
+
+# Установка модифицированного flux-local из git
+RUN pip install git+https://github.com/your-username/flux-local.git@your-branch
+
+# Или установка из конкретного коммита
+# RUN pip install git+https://github.com/your-username/flux-local.git@commit-hash
+
+WORKDIR /workspace
+
+CMD ["bash"]
+```
+
+### Вариант 2: Установка из локального каталога
+
+Если нужно использовать локальную версию:
+
+```dockerfile
+FROM python:3.11-slim
+
+# Установка зависимостей системы
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Установка flux CLI
+RUN curl -s https://fluxcd.io/install.sh | bash
+
+# Копирование исходников форка
+COPY . /tmp/flux-local
+
+# Установка из локального каталога
+RUN pip install /tmp/flux-local && rm -rf /tmp/flux-local
+
+WORKDIR /workspace
+
+CMD ["bash"]
+```
+
+### Вариант 3: Multi-stage build (оптимизированный)
+
+Для минимизации размера образа:
+
+```dockerfile
+# Этап 1: Сборка
+FROM python:3.11-slim AS builder
+
+RUN apt-get update && apt-get install -y git
+
+# Установка flux-local в виртуальное окружение
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Установка из git или локального каталога
+COPY . /tmp/flux-local
+RUN pip install --no-cache-dir /tmp/flux-local
+
+# Этап 2: Финальный образ
+FROM python:3.11-slim
+
+# Копирование виртуального окружения из builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Установка только необходимых runtime зависимостей
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Установка flux CLI
+RUN curl -s https://fluxcd.io/install.sh | bash
+
+# Создание директории для кеша
+RUN mkdir -p /cache/flux-local/helm
+
+WORKDIR /workspace
+
+CMD ["bash"]
+```
+
+### Использование в GitLab CI/CD с кастомным образом
+
+#### Создание образа с форком
+
+**Dockerfile:**
+```dockerfile
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -s https://fluxcd.io/install.sh | bash
+
+# Установка модифицированного flux-local
+RUN pip install git+https://github.com/your-username/flux-local.git@dev
+
+RUN mkdir -p /cache/flux-local/helm
+
+WORKDIR /workspace
+```
+
+**Сборка и публикация образа:**
+```bash
+docker build -t registry.gitlab.com/your-group/flux-local:latest .
+docker push registry.gitlab.com/your-group/flux-local:latest
+```
+
+**Использование в .gitlab-ci.yml:**
+```yaml
+variables:
+  FLUX_LOCAL_TIMEOUT: "600"
+  FLUX_LOCAL_HELM_CACHE_DIR: "$CI_PROJECT_DIR/.cache/flux-local/helm"
+
+cache:
+  key: flux-helm-cache
+  paths:
+    - .cache/flux-local/helm
+
+flux-local-test:
+  stage: test
+  image: registry.gitlab.com/your-group/flux-local:latest
+  script:
+    - flux-local test --enable-helm --path clusters/
+```
+
+### Вариант 4: Установка requirements из форка
+
+Создайте `requirements.txt` в вашем проекте:
+
+```text
+# requirements.txt
+git+https://github.com/your-username/flux-local.git@dev
+```
+
+**Dockerfile:**
+```dockerfile
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -s https://fluxcd.io/install.sh | bash
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+WORKDIR /workspace
+
+CMD ["bash"]
+```
+
+### Переменные окружения в Docker
+
+Установите переменные окружения в Dockerfile или при запуске:
+
+**В Dockerfile:**
+```dockerfile
+ENV FLUX_LOCAL_TIMEOUT=600
+ENV FLUX_LOCAL_HELM_CACHE_DIR=/cache/flux-local/helm
+```
+
+**При запуске контейнера:**
+```bash
+docker run -e FLUX_LOCAL_TIMEOUT=600 \
+           -e FLUX_LOCAL_HELM_CACHE_DIR=/cache/flux-local/helm \
+           -v $(pwd):/workspace \
+           your-image:tag \
+           flux-local test --enable-helm
+```
+
+### Docker Compose пример
+
+```yaml
+version: '3.8'
+
+services:
+  flux-local:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - FLUX_LOCAL_TIMEOUT=600
+      - FLUX_LOCAL_HELM_CACHE_DIR=/cache/flux-local/helm
+    volumes:
+      - ./clusters:/workspace/clusters
+      - flux-helm-cache:/cache/flux-local/helm
+    command: flux-local test --enable-helm --path clusters/
+
+volumes:
+  flux-helm-cache:
+```
