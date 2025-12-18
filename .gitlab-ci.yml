@@ -1,3 +1,9 @@
+# DONT REMOVE SCRIPT MANAGED BLOCK BEGIN
+include:
+  - local: .gitlab/.terraform-managed-gitlab-ci/.tf-gitlab-ci.yml
+    rules: [exists: [".gitlab/.terraform-managed-gitlab-ci/.tf-gitlab-ci.yml"]]
+# DONT REMOVE SCRIPT MANAGED BLOCK END
+
 release:
   rules:
     - if: $CI_PIPELINE_SOURCE != "push"
