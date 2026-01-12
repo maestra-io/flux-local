@@ -1,5 +1,7 @@
 .gitlab/.terraform-managed-gitlab-ci/scans/ @secops-users
 **/.gitleaksignore @secops-users
 
-**/.gitleaksignore @secops-users**/.trivyignore @secops-users
+
 **/.trivyignore.yaml @secops-users
+
+**/.trivyignore @secops-users
