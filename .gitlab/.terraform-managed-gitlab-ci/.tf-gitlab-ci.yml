@@ -4,6 +4,8 @@ gitleaks-validate:
       when: always
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"'
       when: always
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: always
   needs: []
   trigger:
     include: .gitlab/.terraform-managed-gitlab-ci/scans/gitleaks-validate.yml
