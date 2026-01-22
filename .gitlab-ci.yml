@@ -1,34 +1,7 @@
-# DONT REMOVE SCRIPT MANAGED BLOCK BEGIN
+default:
+  before_script:
+    - git fetch origin
+    - git checkout origin/$CI_DEFAULT_BRANCH
+
 include:
   - local: .gitlab/.terraform-managed-gitlab-ci/.tf-gitlab-ci.yml
-    rules: [exists: [".gitlab/.terraform-managed-gitlab-ci/.tf-gitlab-ci.yml"]]
-# DONT REMOVE SCRIPT MANAGED BLOCK END
-
-release:
-  rules:
-    - if: $CI_PIPELINE_SOURCE != "push"
-      when: never
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: always
-    - when: never
-  trigger:
-    include: .gitlab/release.yml
-    strategy: depend
-  resource_group: release
-  environment: release
-
-merge-request:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-  trigger:
-    include: .gitlab/merge-request.yml
-    strategy: depend
-
-empty-job:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-  trigger:
-    include:
-      - project: 'system/components/empty-job'
-        ref: 'main'
-        file: '/templates/empty-job-template.yml'
