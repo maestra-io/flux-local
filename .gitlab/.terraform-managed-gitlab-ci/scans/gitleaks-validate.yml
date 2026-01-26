@@ -2,6 +2,14 @@ workflow:
   rules:
     - when: always
 
+default:
+  before_script:
+    - |
+      echo "Switching to origin/$CI_DEFAULT_BRANCH for scheduled scan"
+      git fetch origin "$CI_DEFAULT_BRANCH"
+      git checkout "origin/$CI_DEFAULT_BRANCH"
+      echo "Current HEAD: $(git log -1 --oneline)"
+
 include:
   - component: $CI_SERVER_FQDN/system/components/gitleaks/gitleaks-schedule-pipeline@0
     inputs:
