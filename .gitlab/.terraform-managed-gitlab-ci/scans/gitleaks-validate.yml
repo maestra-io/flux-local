@@ -3,6 +3,6 @@ workflow:
     - when: always
 
 include:
-  - component: $CI_SERVER_FQDN/system/components/gitleaks/gitleaks-pipeline@0
+  - component: $CI_SERVER_FQDN/system/components/gitleaks/gitleaks-schedule-pipeline@0
     inputs:
       config_path: ${CI_API_V4_URL}/projects/221/repository/files/workflows%2Fgitleaks-validate%2Fgitleaks.toml/raw
