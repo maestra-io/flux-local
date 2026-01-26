@@ -1,7 +1,2 @@
-default:
-  before_script:
-    - git fetch origin
-    - git checkout origin/$CI_DEFAULT_BRANCH
-
 include:
   - local: .gitlab/.terraform-managed-gitlab-ci/.tf-gitlab-ci.yml
