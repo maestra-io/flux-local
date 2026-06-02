@@ -13,4 +13,4 @@ default:
 include:
   - component: $CI_SERVER_FQDN/system/components/gitleaks/gitleaks-schedule-pipeline@0
     inputs:
-      config_path: ${CI_API_V4_URL}/projects/221/repository/files/workflows%2Fgitleaks-validate%2Fgitleaks.toml/raw
+      config_path: ${CI_API_V4_URL}/projects/system%2Fcomponents%2Fgitleaks/repository/files/gitleaks.toml/raw
