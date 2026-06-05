@@ -1,0 +1,8 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: flux-local
+spec:
+  type: infrastructure-component
+  lifecycle: production
+  owner: platform
