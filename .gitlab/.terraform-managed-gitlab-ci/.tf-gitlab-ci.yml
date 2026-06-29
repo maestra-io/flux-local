@@ -20,3 +20,13 @@ trivy-validate:
   trigger:
     include: .gitlab/.terraform-managed-gitlab-ci/scans/trivy-validate.yml
     strategy: depend
+
+opengrep-validate:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: always
+    - when: never
+  needs: []
+  trigger:
+    include: .gitlab/.terraform-managed-gitlab-ci/scans/opengrep-validate.yml
+    strategy: depend
