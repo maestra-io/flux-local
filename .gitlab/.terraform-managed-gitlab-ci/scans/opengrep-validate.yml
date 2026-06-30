@@ -14,3 +14,4 @@ include:
   - component: $CI_SERVER_FQDN/system/components/opengrep/opengrep-schedule-pipeline@main
     inputs:
       semgrepignore_path: ${CI_API_V4_URL}/projects/221/repository/files/workflows%2Fopengrep-validate%2F.semgrepignore/raw
+      excluded_rules_path: ${CI_API_V4_URL}/projects/221/repository/files/workflows%2Fopengrep-validate%2Fexcluded-rules.txt/raw
