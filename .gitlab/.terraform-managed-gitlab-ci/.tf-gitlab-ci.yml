@@ -8,3 +8,12 @@ gitleaks-validate:
   trigger:
     include: .gitlab/.terraform-managed-gitlab-ci/scans/gitleaks-validate.yml
     strategy: depend
+
+merge-policy-validate:
+  allow_failure: false
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+      when: always
+  trigger:
+    include: .gitlab/.terraform-managed-gitlab-ci/merge-policy-validate.yml
+    strategy: depend
