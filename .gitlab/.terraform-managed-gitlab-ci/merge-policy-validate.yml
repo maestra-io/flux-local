@@ -1,0 +1,6 @@
+include:
+  - component: $CI_SERVER_FQDN/system/components/merge-policy-validate/merge-policy-validate-workflow@1
+    inputs:
+      trusted_group: trusted-developers-users
+      enforcing: false
+      target_branch_pattern: '.*'
