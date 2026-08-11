@@ -7,7 +7,10 @@ default:
     - |
       echo "Switching to origin/$CI_DEFAULT_BRANCH for scheduled scan"
       git fetch origin "$CI_DEFAULT_BRANCH"
-      git checkout "origin/$CI_DEFAULT_BRANCH"
+      # -f: артефакты предыдущих джоб скачиваются до before_script и могут совпасть
+      # по имени с файлом репозитория (system/components/gitleaks хранит свой
+      # gitleaks.toml) — без -f checkout падает на «local changes would be overwritten».
+      git checkout -f "origin/$CI_DEFAULT_BRANCH"
       echo "Current HEAD: $(git log -1 --oneline)"
 
 include:
