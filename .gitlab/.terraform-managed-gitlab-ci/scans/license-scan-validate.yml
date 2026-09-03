@@ -1,0 +1,31 @@
+workflow:
+  rules:
+    - when: always
+
+default:
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+  before_script:
+    - |
+      echo "Switching to origin/$CI_DEFAULT_BRANCH for scheduled scan"
+      # Образ license-scan бежит под uid 10001, который не владеет /builds, поэтому
+      # git нужно явное исключение safe.directory.
+      git config --global --add safe.directory "$CI_PROJECT_DIR"
+      for attempt in 1 2 3; do
+        if git fetch origin "$CI_DEFAULT_BRANCH"; then
+          break
+        fi
+        if [ "$attempt" -eq 3 ]; then
+          echo "git fetch origin $CI_DEFAULT_BRANCH failed after 3 attempts"
+          exit 1
+        fi
+        sleep $((attempt * 10))
+      done
+      git checkout "origin/$CI_DEFAULT_BRANCH"
+      echo "Current HEAD: $(git log -1 --oneline)"
+
+include:
+  - component: $CI_SERVER_FQDN/system/components/license-scan/license-scan-pipeline@2
