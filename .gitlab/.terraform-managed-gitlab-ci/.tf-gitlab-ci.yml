@@ -30,3 +30,14 @@ opengrep-validate:
   trigger:
     include: .gitlab/.terraform-managed-gitlab-ci/scans/opengrep-validate.yml
     strategy: depend
+
+
+license-scan-validate:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: always
+    - when: never
+  needs: []
+  trigger:
+    include: .gitlab/.terraform-managed-gitlab-ci/scans/license-scan-validate.yml
+    strategy: depend
