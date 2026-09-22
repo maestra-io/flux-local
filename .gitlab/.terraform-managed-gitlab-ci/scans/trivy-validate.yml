@@ -18,6 +18,3 @@ default:
 
 include:
   - component: $CI_SERVER_FQDN/system/components/trivy/trivy-schedule-pipeline@1
-    inputs:
-      config_path: ${CI_API_V4_URL}/projects/221/repository/files/workflows%2Ftrivy-validate%2Ftrivy.yaml/raw
-      trivyignore_path: ${CI_API_V4_URL}/projects/221/repository/files/workflows%2Ftrivy-validate%2F.trivyignore/raw
