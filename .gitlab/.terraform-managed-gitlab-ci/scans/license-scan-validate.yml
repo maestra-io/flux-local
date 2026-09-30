@@ -15,7 +15,7 @@ default:
       # git нужно явное исключение safe.directory.
       git config --global --add safe.directory "$CI_PROJECT_DIR"
       for attempt in 1 2 3; do
-        if git fetch origin "$CI_DEFAULT_BRANCH"; then
+        if GIT_HTTP_LOW_SPEED_LIMIT=0 git fetch origin "$CI_DEFAULT_BRANCH"; then
           break
         fi
         if [ "$attempt" -eq 3 ]; then
