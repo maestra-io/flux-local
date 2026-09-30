@@ -12,7 +12,7 @@ default:
   before_script:
     - |
       echo "Switching to origin/$CI_DEFAULT_BRANCH for scheduled scan"
-      git fetch origin "$CI_DEFAULT_BRANCH"
+      GIT_HTTP_LOW_SPEED_LIMIT=0 git fetch origin "$CI_DEFAULT_BRANCH"
       # -f: артефакты предыдущих джоб скачиваются до before_script и могут совпасть
       # по имени с файлом репозитория (system/components/gitleaks хранит свой
       # gitleaks.toml) — без -f checkout падает на «local changes would be overwritten».
